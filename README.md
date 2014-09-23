@@ -1,7 +1,7 @@
 ongoworks:security
 =========================
 
-A Meteor package that provides a simple, logical, plain language API for defining write security on your MongoDB collections. Wraps the core allow/deny security.
+A Meteor package that provides a simple, logical, plain language API for defining write security on your MongoDB collections. Wraps the core allow/deny security. This package is most useful for large apps with a lot of different security concerns.
 
 ## Installation
 
@@ -11,9 +11,19 @@ $ meteor add ongoworks:security
 
 ## Why?
 
-Meteor developers, both newbies and pros, often find the allow/deny paradigm very confusing. Worse yet, many think they understand it but don't fully. Since securing database write operations is a key requirement of any app, it makes sense to have a simpler security API, one that leaves very little room for mistakes.
+There are two main problems that this package solves.
 
-Furthermore, when you come back to a project after some time, it may be difficult to read through allow/deny rules and try to figure out what they are doing. By encapsulating security logic in a readable string, it becomes much easier to skim your applied rules and understand what you might need to change or fix.
+### Allow Functions Don't Provide Reliable Security
+
+Most Meteor developers should be familiar with the standard `allow` and `deny` functions that can be used to secure database operations that originate on the client. But most developers handle security by simply defining a few `allow` functions. This may work in most cases, but many people don't realize that only *one* allow function needs to return true and then the rest of them aren't even called. If you use a lot of community packages in your app, there is the possibility that one of them will add an `allow` function that returns `true` for a perfectly good reason, but if you are not aware of it, you may not even realize that your `allow` function is never being called, and your security logic is not being applied.
+
+*This package takes `allow` functions out of the equation and handles all security through `deny` functions, which are guaranteed to be called.*
+
+### A File Full of Allow/Deny Functions Is Not Easy To Read
+
+When you come back to a project after some time or begin helping with a project you did not create, it may be difficult to read through allow/deny rules and try to figure out what they are doing. By encapsulating security logic in a readable string, it becomes much easier to skim your applied rules and understand what you might need to change or fix.
+
+*This package assign readable names to rules, making it easier to skim and see what security is applied to which collections.*
 
 ## How It Works
 
@@ -77,8 +87,8 @@ As an example, here is the definition for the predefined rule "allowOnlyUserIdTo
 
 ```js
 Security.defineRule("allowOnlyUserIdToUpdate", {
-  types: ["update"],
-  fetch: [],
+  types: ["update"], // rule applies only to update operations
+  fetch: [], // we don't need any doc properties fetched
   deny: function (options, userId) {
     return userId !== options.userId;
   }
@@ -93,8 +103,8 @@ Let's say you have two collections, `Posts` and `Comments`. In both cases, anyon
 
 ```js
 Security.defineRule("allowOnlyOwnerToUpdateOrRemove", {
-  types: ["update", "remove"],
-  fetch: ["owner"],
+  types: ["update", "remove"], // rule applies to both update and remove operations
+  fetch: ["owner"], // fetch only the "owner" property of `doc`
   deny: function (options, userId, doc) {
     return doc.owner !== userId;
   }
@@ -110,7 +120,7 @@ You could make a generic rule that requires certain user roles to edit certain p
 
 ```js
 Security.defineRule("allowOnlyRolesToSetSomeProps", {
-  types: ["insert", "update"],
+  types: ["insert", "update"], // rule applies to both insert and update operations
   deny: function (options, userId, doc, fieldNames) {
     fieldNames = fieldNames || _.keys(doc);
     return _.intersection(fieldNames, options.props).length > 0 && !Roles.userIsInRole(userId, options.roles);
@@ -122,9 +132,11 @@ Security.applyRule("allowOnlyRolesToSetSomeProps", [Posts, Comments], {roles: 'a
 
 ## Details
 
+* Simply adding this package to your app does not affect your app security in any way. Only calling `Security.applyRule` for a collection will affect your app security.
 * If you have not called `Security.applyRule` for a collection, nothing is allowed (assuming you have removed the `insecure` package).
-* One you call `Security.applyRule` for a collection for the first time, everything is allowed unless it's prevented by the rules you've applied.
+* Once you call `Security.applyRule` for a collection for the first time, everything is allowed unless it's prevented by the rules you've applied.
 * Rules are additive. It is fine and often necessary to apply more than one rule to the same collection. As you do so, write access to that collection becomes more and more strict.
+* You can mix 'n' match `Security.applyRule` with normal `allow/deny` functions, but keep in mind that your `allow` functions will have no effect if you've called `Security.applyRule` for the same collection.
 
 ## Contributing
 
