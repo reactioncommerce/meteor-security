@@ -134,9 +134,13 @@ Security.applyRule("allowOnlyRolesToSetSomeProps", [Posts, Comments], {roles: 'a
 
 * Simply adding this package to your app does not affect your app security in any way. Only calling `Security.applyRule` for a collection will affect your app security.
 * If you have not called `Security.applyRule` for a collection, nothing is allowed (assuming you have removed the `insecure` package).
-* Once you call `Security.applyRule` for a collection for the first time, everything is allowed unless it's prevented by the rules you've applied.
+* Once you call `Security.applyRule` for a collection for the first time, everything is allowed for the affected operation types, unless it's prevented by the rules you've applied.
 * Rules are additive. It is fine and often necessary to apply more than one rule to the same collection. As you do so, write access to that collection becomes more and more strict.
-* You can mix 'n' match `Security.applyRule` with normal `allow/deny` functions, but keep in mind that your `allow` functions will have no effect if you've called `Security.applyRule` for the same collection.
+* You can mix 'n' match `Security.applyRule` with normal `allow/deny` functions, but keep in mind that your `allow` functions may have no effect if you've called `Security.applyRule` for the same collection.
+
+## Troubleshooting
+
+* It's important to note that you can only *add* strictness to operation types, and once you've done so, you can't make them less strict. For example, if you apply "allowNoOne" to a collection and then apply "allowAnyoneToInsert" to the same collection, the "allowNoOne" rule stays in effect. Nobody will be able to insert. By contrast, if you apply "allowAnyone" followed by "allowOnlyLoggedInToInsert", then you will need to be logged in to insert. The "allowOnlyLoggedInToInsert" rule wins because it is most strict.
 
 ## Contributing
 

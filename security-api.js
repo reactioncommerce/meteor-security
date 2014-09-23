@@ -29,13 +29,13 @@ Security = {
         throw new Error("The collections argument must be a Mongo.Collection instance or an array of them");
       }
     }
-    // If we haven't yet done so, set up a default, permissive `allow` function for all of
-    // the given collections. We control all security through `deny` functions only, but
-    // there must first be at least one `allow` function for each collection or all writes
-    // will be denied.
-    ensureDefaultAllow(collections);
     // Get the requested rule definition
     var rule = definedRules[name];
+    // If we haven't yet done so, set up a default, permissive `allow` function for all of
+    // the given collections and types. We control all security through `deny` functions only, but
+    // there must first be at least one `allow` function for each collection or all writes
+    // will be denied.
+    ensureDefaultAllow(collections, rule.types);
     // Add the rule's deny function for all given collections
     addFuncForAll(collections, "deny", rule.types, rule.fetch, function () {
       var args = _.toArray(arguments);
