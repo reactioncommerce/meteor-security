@@ -1,75 +1,14 @@
 /*
- * This file defines built-in rules
+ * This file defines built-in restriction methods
  */
-
-/*
- * Anyone
- */
-
-Security.defineRule("allowAnyone", {
-  types: ["insert", "update", "remove"],
-  fetch: [],
-  deny: function () {
-    return false;
-  }
-});
-
-Security.defineRule("allowAnyoneToInsert", {
-  types: ["insert"],
-  fetch: [],
-  deny: function () {
-    return false;
-  }
-});
-
-Security.defineRule("allowAnyoneToUpdate", {
-  types: ["update"],
-  fetch: [],
-  deny: function () {
-    return false;
-  }
-});
-
-Security.defineRule("allowAnyoneToRemove", {
-  types: ["remove"],
-  fetch: [],
-  deny: function () {
-    return false;
-  }
-});
 
 /*
  * No one
  */
 
-Security.defineRule("allowNoOne", {
-  types: ["insert", "update", "remove"],
+Security.defineMethod("never", {
   fetch: [],
-  deny: function () {
-    return true;
-  }
-});
-
-Security.defineRule("allowNoOneToInsert", {
-  types: ["insert"],
-  fetch: [],
-  deny: function () {
-    return true;
-  }
-});
-
-Security.defineRule("allowNoOneToUpdate", {
-  types: ["update"],
-  fetch: [],
-  deny: function () {
-    return true;
-  }
-});
-
-Security.defineRule("allowNoOneToRemove", {
-  types: ["remove"],
-  fetch: [],
-  deny: function () {
+  deny: function (type, arg) {
     return true;
   }
 });
@@ -78,34 +17,9 @@ Security.defineRule("allowNoOneToRemove", {
  * Logged In
  */
 
-Security.defineRule("allowOnlyLoggedIn", {
-  types: ["insert", "update", "remove"],
+Security.defineMethod("ifLoggedIn", {
   fetch: [],
-  deny: function (options, userId) {
-    return !userId;
-  }
-});
-
-Security.defineRule("allowOnlyLoggedInToInsert", {
-  types: ["insert"],
-  fetch: [],
-  deny: function (options, userId) {
-    return !userId;
-  }
-});
-
-Security.defineRule("allowOnlyLoggedInToUpdate", {
-  types: ["update"],
-  fetch: [],
-  deny: function (options, userId) {
-    return !userId;
-  }
-});
-
-Security.defineRule("allowOnlyLoggedInToRemove", {
-  types: ["remove"],
-  fetch: [],
-  deny: function (options, userId) {
+  deny: function (type, arg, userId) {
     return !userId;
   }
 });
@@ -114,35 +28,10 @@ Security.defineRule("allowOnlyLoggedInToRemove", {
  * Specific User ID
  */
 
-Security.defineRule("allowOnlyUserId", {
-  types: ["insert", "update", "remove"],
+Security.defineMethod("ifHasUserId", {
   fetch: [],
-  deny: function (options, userId) {
-    return userId !== options.userId;
-  }
-});
-
-Security.defineRule("allowOnlyUserIdToInsert", {
-  types: ["insert"],
-  fetch: [],
-  deny: function (options, userId) {
-    return userId !== options.userId;
-  }
-});
-
-Security.defineRule("allowOnlyUserIdToUpdate", {
-  types: ["update"],
-  fetch: [],
-  deny: function (options, userId) {
-    return userId !== options.userId;
-  }
-});
-
-Security.defineRule("allowOnlyUserIdToRemove", {
-  types: ["remove"],
-  fetch: [],
-  deny: function (options, userId) {
-    return userId !== options.userId;
+  deny: function (type, arg, userId) {
+    return userId !== arg;
   }
 });
 
@@ -154,36 +43,45 @@ if (Package && Package["alanning:roles"]) {
 
   var Roles = Package["alanning:roles"].Roles;
 
-  Security.defineRule("allowOnlyRoles", {
-    types: ["insert", "update", "remove"],
+  Security.defineMethod("ifHasRole", {
     fetch: [],
-    deny: function (options, userId) {
-      return !Roles.userIsInRole(userId, options.roles);
-    }
-  });
-
-  Security.defineRule("allowOnlyRolesToInsert", {
-    types: ["insert"],
-    fetch: [],
-    deny: function (options, userId) {
-      return !Roles.userIsInRole(userId, options.roles);
-    }
-  });
-
-  Security.defineRule("allowOnlyRolesToUpdate", {
-    types: ["update"],
-    fetch: [],
-    deny: function (options, userId) {
-      return !Roles.userIsInRole(userId, options.roles);
-    }
-  });
-
-  Security.defineRule("allowOnlyRolesToRemove", {
-    types: ["remove"],
-    fetch: [],
-    deny: function (options, userId) {
-      return !Roles.userIsInRole(userId, options.roles);
+    deny: function (type, arg, userId) {
+      return !Roles.userIsInRole(userId, arg);
     }
   });
 
 }
+
+/*
+ * Specific Properties
+ */
+
+Security.defineMethod("onlyProps", {
+  fetch: [],
+  deny: function (type, arg, userId, doc, fieldNames) {
+    if (!_.isArray(arg)) {
+      arg = [arg];
+    }
+
+    fieldNames = fieldNames || _.keys(doc);
+
+    return !_.every(fieldNames, function (fieldName) {
+      return _.contains(arg, fieldName);
+    });
+  }
+});
+
+Security.defineMethod("exceptProps", {
+  fetch: [],
+  deny: function (type, arg, userId, doc, fieldNames) {
+    if (!_.isArray(arg)) {
+      arg = [arg];
+    }
+
+    fieldNames = fieldNames || _.keys(doc);
+
+    return _.any(fieldNames, function (fieldName) {
+      return _.contains(arg, fieldName);
+    });
+  }
+});

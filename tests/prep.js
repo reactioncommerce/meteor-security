@@ -37,41 +37,25 @@ Collections = {};
 
 _.each(collectionNames, function (name) {
   Collections[name] = new Mongo.Collection(name);
-
-  if (name !== "control")
-    Security.applyRule(name, Collections[name]);
-
   seed(name);
 });
 
-// Combinations
+//allowAnyone
 
-Collections.allowAllExceptInsert = new Mongo.Collection("allowAllExceptInsert");
-seed("allowAllExceptInsert");
-Security.applyRule("allowAnyone", Collections.allowAllExceptInsert);
-Security.applyRule("allowNoOneToInsert", Collections.allowAllExceptInsert);
+Security.clientsMay(['insert', 'update', 'remove']).collections(Collections.allowAnyone).apply();
 
-Collections.allowAllExceptUpdate = new Mongo.Collection("allowAllExceptUpdate");
-seed("allowAllExceptUpdate");
-Security.applyRule("allowAnyone", Collections.allowAllExceptUpdate);
-Security.applyRule("allowNoOneToUpdate", Collections.allowAllExceptUpdate);
+Security.clientsMay(['insert']).collections(Collections.allowAnyoneToInsert).apply();
 
-Collections.allowAllExceptRemove = new Mongo.Collection("allowAllExceptRemove");
-seed("allowAllExceptRemove");
-Security.applyRule("allowAnyone", Collections.allowAllExceptRemove);
-Security.applyRule("allowNoOneToRemove", Collections.allowAllExceptRemove);
+Security.clientsMay(['update']).collections(Collections.allowAnyoneToUpdate).apply();
 
-Collections.allowOnlyInsertAndRemove = new Mongo.Collection("allowOnlyInsertAndRemove");
-seed("allowOnlyInsertAndRemove");
-Security.applyRule("allowAnyoneToInsert", Collections.allowOnlyInsertAndRemove);
-Security.applyRule("allowAnyoneToRemove", Collections.allowOnlyInsertAndRemove);
+Security.clientsMay(['remove']).collections(Collections.allowAnyoneToRemove).apply();
 
-Collections.allowOnlyInsertAndUpdate = new Mongo.Collection("allowOnlyInsertAndUpdate");
-seed("allowOnlyInsertAndUpdate");
-Security.applyRule("allowAnyoneToInsert", Collections.allowOnlyInsertAndUpdate);
-Security.applyRule("allowAnyoneToUpdate", Collections.allowOnlyInsertAndUpdate);
+//allowNoOne
 
-Collections.allowOnlyUpdateAndRemove = new Mongo.Collection("allowOnlyUpdateAndRemove");
-seed("allowOnlyUpdateAndRemove");
-Security.applyRule("allowAnyoneToUpdate", Collections.allowOnlyUpdateAndRemove);
-Security.applyRule("allowAnyoneToRemove", Collections.allowOnlyUpdateAndRemove);
+Security.clientsMay(['insert', 'update', 'remove']).collections(Collections.allowNoOne).never().apply();
+
+Security.clientsMay(['insert']).collections(Collections.allowNoOneToInsert).never().apply();
+
+Security.clientsMay(['update']).collections(Collections.allowNoOneToUpdate).never().apply();
+
+Security.clientsMay(['remove']).collections(Collections.allowNoOneToRemove).never().apply();
