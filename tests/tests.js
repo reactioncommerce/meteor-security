@@ -1,6 +1,15 @@
 // Tests are run only on the client because we are only concerned about client-initiated DB operations
 
 /*
+ * prep
+ */
+
+Tinytest.addAsync('Security - prep', function(test, next) {
+  test.isTrue(true);
+  Meteor.call("seed", next);
+});
+
+/*
  * control
  */
 
@@ -410,6 +419,250 @@ Tinytest.addAsync('Security - allowOnlyLoggedInToRemove - remove', function(test
 });
 
 /*
+ * allowOnlyUserId
+ */
+
+Tinytest.addAsync('Security - allowOnlyUserId - insert', function(test, next) {
+  Meteor.logout(function () {
+    Collections.allowOnlyUserId.insert({}, function (error, result) {
+      test.isTrue(!!error);
+      createAndLogIn(null, function () {
+        Collections.allowOnlyUserId.insert({}, function (error, result) {
+          test.isTrue(!!error);
+          logInAsJimmy(function () {
+            Collections.allowOnlyUserId.insert({}, function (error, result) {
+              test.isFalse(!!error);
+              next();
+            });
+          });
+        });
+      });
+    });
+  });
+});
+
+Tinytest.addAsync('Security - allowOnlyUserId - update', function(test, next) {
+  Meteor.logout(function () {
+    Collections.allowOnlyUserId.update("test2", {$set: {foo: "bar"}}, function (error, result) {
+      test.isTrue(!!error);
+      createAndLogIn(null, function () {
+        Collections.allowOnlyUserId.update("test2", {$set: {foo: "bar"}}, function (error, result) {
+          test.isTrue(!!error);
+          logInAsJimmy(function () {
+            Collections.allowOnlyUserId.update("test2", {$set: {foo: "bar"}}, function (error, result) {
+              test.isFalse(!!error);
+              next();
+            });
+          });
+        });
+      });
+    });
+  });
+});
+
+Tinytest.addAsync('Security - allowOnlyUserId - remove', function(test, next) {
+  Meteor.logout(function () {
+    Collections.allowOnlyUserId.remove("test3", function (error, result) {
+      test.isTrue(!!error);
+      createAndLogIn(null, function () {
+        Collections.allowOnlyUserId.remove("test3", function (error, result) {
+          test.isTrue(!!error);
+          logInAsJimmy(function () {
+            Collections.allowOnlyUserId.remove("test3", function (error, result) {
+              test.isFalse(!!error);
+              next();
+            });
+          });
+        });
+      });
+    });
+  });
+});
+
+/*
+ * allowOnlyUserIdToInsert
+ */
+
+Tinytest.addAsync('Security - allowOnlyUserIdToInsert - insert', function(test, next) {
+  Meteor.logout(function () {
+    Collections.allowOnlyUserIdToInsert.insert({}, function (error, result) {
+      test.isTrue(!!error);
+      createAndLogIn(null, function () {
+        Collections.allowOnlyUserIdToInsert.insert({}, function (error, result) {
+          test.isTrue(!!error);
+          logInAsJimmy(function () {
+            Collections.allowOnlyUserIdToInsert.insert({}, function (error, result) {
+              test.isFalse(!!error);
+              next();
+            });
+          });
+        });
+      });
+    });
+  });
+});
+
+Tinytest.addAsync('Security - allowOnlyUserIdToInsert - update', function(test, next) {
+  Meteor.logout(function () {
+    Collections.allowOnlyUserIdToInsert.update("test", {$set: {foo: "bar"}}, function (error, result) {
+      test.isTrue(!!error);
+      createAndLogIn(null, function () {
+        Collections.allowOnlyUserIdToInsert.update("test", {$set: {foo: "bar"}}, function (error, result) {
+          test.isTrue(!!error);
+          logInAsJimmy(function () {
+            Collections.allowOnlyUserIdToInsert.update("test3", {$set: {foo: "bar"}}, function (error, result) {
+              test.isTrue(!!error);
+              next();
+            });
+          });
+        });
+      });
+    });
+  });
+});
+
+Tinytest.addAsync('Security - allowOnlyUserIdToInsert - remove', function(test, next) {
+  Meteor.logout(function () {
+    Collections.allowOnlyUserIdToInsert.remove("test", function (error, result) {
+      test.isTrue(!!error);
+      createAndLogIn(null, function () {
+        Collections.allowOnlyUserIdToInsert.remove("test", function (error, result) {
+          test.isTrue(!!error);
+          logInAsJimmy(function () {
+            Collections.allowOnlyUserIdToInsert.remove("test3", function (error, result) {
+              test.isTrue(!!error);
+              next();
+            });
+          });
+        });
+      });
+    });
+  });
+});
+
+/*
+ * allowOnlyUserIdToUpdate
+ */
+
+Tinytest.addAsync('Security - allowOnlyUserIdToUpdate - insert', function(test, next) {
+  Meteor.logout(function () {
+    Collections.allowOnlyUserIdToUpdate.insert({}, function (error, result) {
+      test.isTrue(!!error);
+      createAndLogIn(null, function () {
+        Collections.allowOnlyUserIdToUpdate.insert({foo: "bar"}, function (error, result) {
+          test.isTrue(!!error);
+          logInAsJimmy(function () {
+            Collections.allowOnlyUserIdToUpdate.insert({}, function (error, result) {
+              test.isTrue(!!error);
+              next();
+            });
+          });
+        });
+      });
+    });
+  });
+});
+
+Tinytest.addAsync('Security - allowOnlyUserIdToUpdate - update', function(test, next) {
+  Meteor.logout(function () {
+    Collections.allowOnlyUserIdToUpdate.update("test", {$set: {foo: "bar"}}, function (error, result) {
+      test.isTrue(!!error);
+      createAndLogIn(null, function () {
+        Collections.allowOnlyUserIdToUpdate.update("test", {$set: {foo: "bar"}}, function (error, result) {
+          test.isTrue(!!error);
+          logInAsJimmy(function () {
+            Collections.allowOnlyUserIdToUpdate.update("test3", {$set: {foo: "bar"}}, function (error, result) {
+              test.isFalse(!!error);
+              next();
+            });
+          });
+        });
+      });
+    });
+  });
+});
+
+Tinytest.addAsync('Security - allowOnlyUserIdToUpdate - remove', function(test, next) {
+  Meteor.logout(function () {
+    Collections.allowOnlyUserIdToUpdate.remove("test", function (error, result) {
+      test.isTrue(!!error);
+      createAndLogIn(null, function () {
+        Collections.allowOnlyUserIdToUpdate.remove("test", function (error, result) {
+          test.isTrue(!!error);
+          logInAsJimmy(function () {
+            Collections.allowOnlyUserIdToUpdate.remove("test3", function (error, result) {
+              test.isTrue(!!error);
+              next();
+            });
+          });
+        });
+      });
+    });
+  });
+});
+
+/*
+ * allowOnlyUserIdToRemove
+ */
+
+Tinytest.addAsync('Security - allowOnlyUserIdToRemove - insert', function(test, next) {
+  Meteor.logout(function () {
+    Collections.allowOnlyUserIdToRemove.insert({}, function (error, result) {
+      test.isTrue(!!error);
+      createAndLogIn(null, function () {
+        Collections.allowOnlyUserIdToRemove.insert({}, function (error, result) {
+          test.isTrue(!!error);
+          logInAsJimmy(function () {
+            Collections.allowOnlyUserIdToRemove.insert({}, function (error, result) {
+              test.isTrue(!!error);
+              next();
+            });
+          });
+        });
+      });
+    });
+  });
+});
+
+Tinytest.addAsync('Security - allowOnlyUserIdToRemove - update', function(test, next) {
+  Meteor.logout(function () {
+    Collections.allowOnlyUserIdToRemove.update("test2", {$set: {foo: "bar"}}, function (error, result) {
+      test.isTrue(!!error);
+      createAndLogIn(null, function () {
+        Collections.allowOnlyUserIdToRemove.update("test2", {$set: {foo: "bar"}}, function (error, result) {
+          test.isTrue(!!error);
+          logInAsJimmy(function () {
+            Collections.allowOnlyUserIdToRemove.update("test2", {$set: {foo: "bar"}}, function (error, result) {
+              test.isTrue(!!error);
+              next();
+            });
+          });
+        });
+      });
+    });
+  });
+});
+
+Tinytest.addAsync('Security - allowOnlyUserIdToRemove - remove', function(test, next) {
+  Meteor.logout(function () {
+    Collections.allowOnlyUserIdToRemove.remove("test3", function (error, result) {
+      test.isTrue(!!error);
+      createAndLogIn(null, function () {
+        Collections.allowOnlyUserIdToRemove.remove("test3", function (error, result) {
+          test.isTrue(!!error);
+          logInAsJimmy(function () {
+            Collections.allowOnlyUserIdToRemove.remove("test3", function (error, result) {
+              test.isFalse(!!error);
+              next();
+            });
+          });
+        });
+      });
+    });
+  });
+});
+
+/*
  * advanced1
  */
 
@@ -453,7 +706,10 @@ Tinytest.addAsync('Security - advanced1 - update logged in', function(test, next
   createAndLogIn(null, function () {
     Collections.advanced1.update("test", {$set: {foo: "bar"}}, function (error, result) {
       test.isFalse(!!error);
-      next();
+      Collections.advanced1.update("test", {$set: {author: "john"}}, function (error, result) {
+        test.isTrue(!!error);
+        next();
+      });
     });
   });
 });
@@ -480,6 +736,14 @@ function createAndLogIn(role, callback) {
           callback();
         }
       });
+    });
+  });
+}
+
+function logInAsJimmy(callback) {
+  Meteor.logout(function () {
+    Meteor.loginWithPassword({username: 'jimmy'}, 'jimmy', function (error) {
+      callback();
     });
   });
 }

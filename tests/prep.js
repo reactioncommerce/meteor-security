@@ -1,19 +1,5 @@
 // Prep is done on both client and server because it should work to define security in common code
 
-function seed(name) {
-  if (Meteor.isServer) {
-    if (!Collections[name].findOne({_id: "test"})) {
-      Collections[name].insert({_id: "test"});
-    }
-    if (!Collections[name].findOne({_id: "test2"})) {
-      Collections[name].insert({_id: "test2"});
-    }
-    if (!Collections[name].findOne({_id: "test3"})) {
-      Collections[name].insert({_id: "test3"});
-    }
-  }
-}
-
 collectionNames = [
   "control",
   "allowAnyone",
@@ -24,27 +10,21 @@ collectionNames = [
   "allowNoOneToInsert",
   "allowNoOneToUpdate",
   "allowNoOneToRemove",
-  "advanced1",
   "allowOnlyLoggedIn",
   "allowOnlyLoggedInToInsert",
   "allowOnlyLoggedInToUpdate",
-  "allowOnlyLoggedInToRemove"//,
-  // TODO add tests for these
-  // "allowOnlyUserId",
-  // "allowOnlyUserIdToInsert",
-  // "allowOnlyUserIdToUpdate",
-  // "allowOnlyUserIdToRemove",
-  // "allowOnlyRoles",
-  // "allowOnlyRolesToInsert",
-  // "allowOnlyRolesToUpdate",
-  // "allowOnlyRolesToRemove"
+  "allowOnlyLoggedInToRemove",
+  "allowOnlyUserId",
+  "allowOnlyUserIdToInsert",
+  "allowOnlyUserIdToUpdate",
+  "allowOnlyUserIdToRemove",
+  "advanced1"
 ];
 
 Collections = {};
 
 _.each(collectionNames, function (name) {
   Collections[name] = new Mongo.Collection(name);
-  seed(name);
 });
 
 if (Meteor.isServer) {
@@ -79,6 +59,23 @@ if (Meteor.isServer) {
 
   Collections.allowOnlyLoggedInToRemove.permit(['remove']).ifLoggedIn().apply();
 
+  //allowOnlyUserId
+
+  var testUserId = Meteor.users.findOne({username: 'jimmy'});
+  if (testUserId) {
+    testUserId = testUserId._id;
+  } else {
+    testUserId = Accounts.createUser({username: 'jimmy', password: 'jimmy'});
+  }
+
+  Collections.allowOnlyUserId.permit(['insert', 'update', 'remove']).ifHasUserId(testUserId).apply();
+
+  Collections.allowOnlyUserIdToInsert.permit(['insert']).ifHasUserId(testUserId).apply();
+
+  Collections.allowOnlyUserIdToUpdate.permit(['update']).ifHasUserId(testUserId).apply();
+
+  Collections.allowOnlyUserIdToRemove.permit(['remove']).ifHasUserId(testUserId).apply();
+
   //advanced1
   Collections.advanced1.permit(['insert', 'update']).ifHasRole('admin').apply();
   Collections.advanced1.permit('update').ifLoggedIn().exceptProps(['author', 'date']).apply();
@@ -86,6 +83,19 @@ if (Meteor.isServer) {
   Meteor.methods({
     addUserToRole: function (role) {
       Roles.addUsersToRoles(this.userId, role);
+    },
+    seed: function () {
+      _.each(collectionNames, function (name) {
+        if (!Collections[name].findOne({_id: "test"})) {
+          Collections[name].insert({_id: "test"});
+        }
+        if (!Collections[name].findOne({_id: "test2"})) {
+          Collections[name].insert({_id: "test2"});
+        }
+        if (!Collections[name].findOne({_id: "test3"})) {
+          Collections[name].insert({_id: "test3"});
+        }
+      });
     }
   });
 
