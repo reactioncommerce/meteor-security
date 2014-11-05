@@ -1,7 +1,7 @@
 ongoworks:security
 =========================
 
-A Meteor package that provides a simple, logical, plain language API for defining write security on your MongoDB collections. Wraps the core allow/deny security. This package is most useful for large apps with a lot of different security concerns.
+A Meteor package that provides a simple, logical, plain language API for defining write security on your MongoDB collections. Wraps the core allow/deny security.
 
 ## Installation
 
@@ -23,34 +23,47 @@ Most Meteor developers should be familiar with the standard `allow` and `deny` f
 
 When you come back to a project after some time or begin helping with a project you did not create, it may be difficult to read through allow/deny rules and try to figure out what they are doing. By encapsulating security logic in a readable string, it becomes much easier to skim your applied rules and understand what you might need to change or fix.
 
-*This package assign readable names to rules, making it easier to skim and see what security is applied to which collections.*
+*This package assign readable names to rule methods, making it easier to skim and see what security is applied to which collections.*
 
 ## How It Works
 
-This package exports a `Security` object. Call `Security.clientsMay` to begin a new rule chain. Then call `collections` on the result of that. Then optionally call one or more restriction methods. Here are some examples:
+Instead of calling `allow` or `deny` on your collections, call `permit` to begin a new rule chain. Then optionally call one or more restriction methods. When you've defined the entire rule, call `apply`. Here are some examples:
 
 ```js
 // Any client may insert, update, or remove a post without restriction
-Security.clientsMay(['insert', 'update', 'remove']).collections(Posts).apply();
+Posts.permit(['insert', 'update', 'remove']).apply();
 
 // No clients may insert, update, or remove posts
-Security.clientsMay(['insert', 'update', 'remove']).collections(Posts).never().apply();
+Posts.permit(['insert', 'update', 'remove']).never().apply();
 
 // Clients may insert posts only if a user is logged in
-Security.clientsMay('insert').collections(Posts).ifLoggedIn().apply();
+Posts.permit('insert').ifLoggedIn().apply();
 
 // Clients may remove posts only if an admin user is logged in
-Security.clientsMay('remove').collections(Posts).ifHasRole('admin').apply();
+Posts.permit('remove').ifHasRole('admin').apply();
 
 // Admin users may update any properties of any post, but regular users may
 // update posts only if they don't try to change the `author` or `date` properties
-Security.clientsMay('update').collections(Posts).ifHasRole('admin').apply();
-Security.clientsMay('update').collections(Posts).ifLoggedIn().exceptProps(['author', 'date']).apply();
+Posts.permit('update').ifHasRole('admin').apply();
+Posts.permit('update').ifLoggedIn().exceptProps(['author', 'date']).apply();
 ```
 
 ## API
 
-TODO
+### Security.permit(types)
+
+If you want to apply the same rule to multiple collections at once, you can do
+
+```js
+Security.permit(['insert', 'update']).collections([Collection1, Collection2])...ruleChainMethods()...apply();
+```
+
+which is equivalent to
+
+```js
+Collection1.permit(['insert', 'update'])...ruleChainMethods()...apply();
+Collection2.permit(['insert', 'update'])...ruleChainMethods()...apply();
+```
 
 ### Security.defineMethod(name, definition)
 
@@ -66,6 +79,10 @@ Security.defineMethod("ifHasUserId", {
   }
 });
 ```
+
+### Security.Rule
+
+An object of this type is returned throughout the rule chain.
 
 ## Details
 

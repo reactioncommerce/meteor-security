@@ -5,6 +5,12 @@ function seed(name) {
     if (!Collections[name].findOne({_id: "test"})) {
       Collections[name].insert({_id: "test"});
     }
+    if (!Collections[name].findOne({_id: "test2"})) {
+      Collections[name].insert({_id: "test2"});
+    }
+    if (!Collections[name].findOne({_id: "test3"})) {
+      Collections[name].insert({_id: "test3"});
+    }
   }
 }
 
@@ -17,12 +23,13 @@ collectionNames = [
   "allowNoOne",
   "allowNoOneToInsert",
   "allowNoOneToUpdate",
-  "allowNoOneToRemove"//,
-  // TODO add tests for these eventually
-  // "allowOnlyLoggedIn",
-  // "allowOnlyLoggedInToInsert",
-  // "allowOnlyLoggedInToUpdate",
-  // "allowOnlyLoggedInToRemove",
+  "allowNoOneToRemove",
+  "advanced1",
+  "allowOnlyLoggedIn",
+  "allowOnlyLoggedInToInsert",
+  "allowOnlyLoggedInToUpdate",
+  "allowOnlyLoggedInToRemove"//,
+  // TODO add tests for these
   // "allowOnlyUserId",
   // "allowOnlyUserIdToInsert",
   // "allowOnlyUserIdToUpdate",
@@ -40,22 +47,46 @@ _.each(collectionNames, function (name) {
   seed(name);
 });
 
-//allowAnyone
+if (Meteor.isServer) {
 
-Security.clientsMay(['insert', 'update', 'remove']).collections(Collections.allowAnyone).apply();
+  //allowAnyone
 
-Security.clientsMay(['insert']).collections(Collections.allowAnyoneToInsert).apply();
+  Collections.allowAnyone.permit(['insert', 'update', 'remove']).apply();
 
-Security.clientsMay(['update']).collections(Collections.allowAnyoneToUpdate).apply();
+  Collections.allowAnyoneToInsert.permit(['insert']).apply();
 
-Security.clientsMay(['remove']).collections(Collections.allowAnyoneToRemove).apply();
+  Collections.allowAnyoneToUpdate.permit(['update']).apply();
 
-//allowNoOne
+  Collections.allowAnyoneToRemove.permit(['remove']).apply();
 
-Security.clientsMay(['insert', 'update', 'remove']).collections(Collections.allowNoOne).never().apply();
+  //allowNoOne
 
-Security.clientsMay(['insert']).collections(Collections.allowNoOneToInsert).never().apply();
+  Collections.allowNoOne.permit(['insert', 'update', 'remove']).never().apply();
 
-Security.clientsMay(['update']).collections(Collections.allowNoOneToUpdate).never().apply();
+  Collections.allowNoOneToInsert.permit(['insert']).never().apply();
 
-Security.clientsMay(['remove']).collections(Collections.allowNoOneToRemove).never().apply();
+  Collections.allowNoOneToUpdate.permit(['update']).never().apply();
+
+  Collections.allowNoOneToUpdate.permit(['remove']).never().apply();
+
+  //allowOnlyLoggedIn
+
+  Collections.allowOnlyLoggedIn.permit(['insert', 'update', 'remove']).ifLoggedIn().apply();
+
+  Collections.allowOnlyLoggedInToInsert.permit(['insert']).ifLoggedIn().apply();
+
+  Collections.allowOnlyLoggedInToUpdate.permit(['update']).ifLoggedIn().apply();
+
+  Collections.allowOnlyLoggedInToRemove.permit(['remove']).ifLoggedIn().apply();
+
+  //advanced1
+  Collections.advanced1.permit(['insert', 'update']).ifHasRole('admin').apply();
+  Collections.advanced1.permit('update').ifLoggedIn().exceptProps(['author', 'date']).apply();
+
+  Meteor.methods({
+    addUserToRole: function (role) {
+      Roles.addUsersToRoles(this.userId, role);
+    }
+  });
+
+}

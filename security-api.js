@@ -10,7 +10,7 @@ Security = {
     self._restrictions = [];
   },
   // the starting point of the chain
-  clientsMay: function clientsMay(types) {
+  permit: function permit(types) {
     return new Security.Rule(types);
   },
   defineMethod: function Security_defineMethod(name, definition) {
@@ -47,6 +47,14 @@ Security.Rule.prototype.collections = function (collections) {
   }
 
   self._collections = collections;
+
+  // Keep list keyed by collection name
+  _.each(collections, function (collection) {
+    var n = collection._name;
+    rulesByCollection[n] = rulesByCollection[n] || [];
+    rulesByCollection[n].push(self);
+  });
+
   return self;
 };
 
@@ -54,7 +62,7 @@ Security.Rule.prototype.apply = function () {
   var self = this;
 
   if (!self._collections || !self._types) {
-    throw new Error("At a minimum, you must call clientsMay and collections methods for a security rule.");
+    throw new Error("At a minimum, you must call permit and collections methods for a security rule.");
   }
 
   // If we haven't yet done so, set up a default, permissive `allow` function for all of
@@ -65,27 +73,30 @@ Security.Rule.prototype.apply = function () {
 
   // We need a combined `fetch` array. The `fetch` is optional and can be either an array
   // or a function that takes the argument passed to the restriction method and returns an array.
-  var fetch = [];
-  _.each(self._restrictions, function (restriction) {
-    if (_.isArray(restriction.definition.fetch)) {
-      fetch = fetch.concat(restriction.definition.fetch);
-    } else if (typeof restriction.definition.fetch === "function") {
-      fetch = fetch.concat(restriction.definition.fetch(restriction.arg));
-    }
+  // TODO for now we can't set fetch accurately; maybe need to adjust API so that we "apply" only
+  // after we've defined all rules
+  //var fetch = [];
+  //_.each(self._restrictions, function (restriction) {
+  //  if (_.isArray(restriction.definition.fetch)) {
+  //    fetch = fetch.concat(restriction.definition.fetch);
+  //  } else if (typeof restriction.definition.fetch === "function") {
+  //    fetch = fetch.concat(restriction.definition.fetch(restriction.arg));
+  //  }
+  //});
+
+  ensureSecureDeny(self._collections, self._types);
+
+};
+
+Security.Rule.prototype.deny = function (type, args) {
+  var self = this;
+  // Loop through all defined restrictions. Restrictions are additive for this chained
+  // rule, so if any deny function returns true, this function should return true.
+  return _.any(self._restrictions, function (restriction) {
+    return restriction.definition.deny.apply(this, [type, restriction.arg].concat(args));
   });
+};
 
-  // Loop through types separately so that we can pass the type to the deny functions
-  _.each(self._types, function (type) {
-    addFuncForAll(self._collections, "deny", [type], fetch, function () {
-      var args = _.toArray(arguments);
-
-      // Loop through all defined restrictions. Restrictions are additive for this chained
-      // application, so if any deny function returns true, our wrapper deny function should
-      // also return true.
-      return _.any(self._restrictions, function (restriction) {
-        return restriction.definition.deny.apply(this, [type, restriction.arg].concat(args));
-      });
-    });
-  });
-
+Mongo.Collection.prototype.permit = function (types) {
+  return Security.permit(types).collections(this);
 };

@@ -1,3 +1,5 @@
+rulesByCollection = {};
+
 addFuncForAll = function addFuncForAll(collections, allowOrDeny, types, fetch, func) {
   var rules = {};
   if (_.isArray(fetch)) {
@@ -11,22 +13,33 @@ addFuncForAll = function addFuncForAll(collections, allowOrDeny, types, fetch, f
   });
 };
 
-var defaultAllowCreated = {
-  insert: {},
-  update: {},
-  remove: {}
+var created = {
+  allow: {
+    insert: {},
+    update: {},
+    remove: {}
+  },
+  deny: {
+    insert: {},
+    update: {},
+    remove: {}
+  }
 };
-ensureDefaultAllow = function ensureDefaultAllow(collections, types) {
+ensureCreated = function ensureCreated(allowOrDeny, collections, types, func) {
   _.each(types, function (t) {
     collections = _.reject(collections, function (c) {
-      return _.has(defaultAllowCreated[t], c._name);
+      return _.has(created[allowOrDeny][t], c._name);
     });
-    addFuncForAll(collections, "allow", [t], [], function () {
-      return true;
-    });
-    // mark that we've defined allow function for collection-type combo
+    addFuncForAll(collections, allowOrDeny, [t], [], func);
+    // mark that we've defined function for collection-type combo
     _.each(collections, function (c) {
-      defaultAllowCreated[t][c._name] = true;
+      created[allowOrDeny][t][c._name] = true;
     });
+  });
+};
+
+ensureDefaultAllow = function ensureDefaultAllow(collections, types) {
+  ensureCreated("allow", collections, types, function () {
+    return true;
   });
 };
