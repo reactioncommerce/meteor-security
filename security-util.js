@@ -30,7 +30,7 @@ ensureCreated = function ensureCreated(allowOrDeny, collections, types, func) {
     collections = _.reject(collections, function (c) {
       return _.has(created[allowOrDeny][t], c._name);
     });
-    addFuncForAll(collections, allowOrDeny, [t], [], func);
+    addFuncForAll(collections, allowOrDeny, [t], null, func);
     // mark that we've defined function for collection-type combo
     _.each(collections, function (c) {
       created[allowOrDeny][t][c._name] = true;
