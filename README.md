@@ -48,6 +48,15 @@ Posts.permit('update').ifHasRole('admin').apply();
 Posts.permit('update').ifLoggedIn().exceptProps(['author', 'date']).apply();
 ```
 
+## Built-In Rule Chain Methods
+
+* **never()** - Prevents the database operations from untrusted code. Should be the same as not defining any rules, but it never hurts to be extra careful.
+* **ifLoggedIn()** - Allows the database operations from untrusted code only when there is a logged in user.
+* **ifHasUserId(userId)** - Allows the database operations from untrusted code only for the given user.
+* **ifHasRole(role)** - Allows the database operations from untrusted code only for users with the given role. Using this method requires adding the `alanning:roles` package to your app.
+* **onlyProps(props)** - Allows the database operations from untrusted code for the given top-level doc properties only. `props` can be a string or an array of strings.
+* **exceptProps(props)** - Allows the database operations from untrusted code for all top-level doc properties except those specified. `props` can be a string or an array of strings.
+
 ## API
 
 ### Security.permit(types)
