@@ -29,6 +29,8 @@ When you come back to a project after some time or begin helping with a project 
 
 Instead of calling `allow` or `deny` on your collections, call `permit` to begin a new rule chain. Then optionally call one or more restriction methods. When you've defined the entire rule, call `apply`. Here are some examples:
 
+*/server/security.js:*
+
 ```js
 // Any client may insert, update, or remove a post without restriction
 Posts.permit(['insert', 'update', 'remove']).apply();
@@ -58,6 +60,8 @@ Posts.permit('update').ifLoggedIn().exceptProps(['author', 'date']).apply();
 * **exceptProps(props)** - Allows the database operations from untrusted code for all top-level doc properties except those specified. `props` can be a string or an array of strings.
 
 ## API
+
+*Note: This entire API and all rule methods are available only in server code. As a security best practice, you should not define your security rules in client code or in server code that is sent to clients. Meteor allow/deny functions are documented as server-only functions, although they are currently available in client code, too.*
 
 ### Security.permit(types)
 
