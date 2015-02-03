@@ -103,6 +103,11 @@ An object of this type is returned throughout the rule chain.
 * If you have not defined any rules for a collection, nothing is allowed (assuming you have removed the `insecure` package).
 * It is fine and often necessary to apply more than one rule to the same collection. Each rule is evaluated separately, and at least one must pass.
 * You can mix 'n' match these rules with normal `allow/deny` functions, but keep in mind that your `allow` functions may have no effect if you've called Security `apply` for the same collection.
+* If you want to use this with the Meteor.users collections, use the Security.permit() syntax. Working example:
+
+    Security.permit(['insert', 'update', 'remove']).collections([
+        Meteor.users
+    ]).never().apply();
 
 ## Contributing
 
