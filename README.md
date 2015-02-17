@@ -104,6 +104,20 @@ An object of this type is returned throughout the rule chain.
 * It is fine and often necessary to apply more than one rule to the same collection. Each rule is evaluated separately, and at least one must pass.
 * You can mix 'n' match these rules with normal `allow/deny` functions, but keep in mind that your `allow` functions may have no effect if you've called Security `apply` for the same collection.
 
+## Logic
+
+Rules within the same chain combine with AND. Multiple chains for the same collection combine with OR. In other words, at least one chain of rules must pass for the collection-operation combination. They are evaluated in the order they are defined. As soon as one passes for the collection-operation, no more are tested.
+
+For example:
+
+```js
+// You can remove a post if you have admin role
+Posts.permit('remove').ifHasRole('admin').apply();
+// OR You can remove a post if you are logged in AND you created it AND it is not a Friday
+Posts.permit('remove').ifLoggedIn().ifCreated().ifNotFriday().apply();
+// If neither of the above are true, the default behavior is to deny removal
+```
+
 ## Contributing
 
 You are welcome to submit pull requests if you have ideas for fixing or improving the API. If you come up with generally useful security rules, you should publish your own package that depends on this one and document the rules it provides so that others can use them. You may then submit a pull request to add a link to your package documentation in this readme.
