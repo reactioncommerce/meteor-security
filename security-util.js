@@ -24,7 +24,9 @@ var created = {
  * @param {Function}                func        The function
  */
 addFuncForAll = function addFuncForAll(collections, allowOrDeny, types, fetch, func) {
-  var rules = {};
+  // We always disable transformation, but we transform for specific
+  // rules upon running our deny function if requested.
+  var rules = {transform: null};
   if (_.isArray(fetch)) {
     rules.fetch = fetch;
   }

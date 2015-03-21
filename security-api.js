@@ -22,6 +22,10 @@ Security = {
     if (!definition || !definition.deny) {
       throw new Error('Security.defineMethod requires a "deny" function');
     }
+    // Wrap transform, if provided
+    if (definition.transform) {
+      definition.transform = LocalCollection.wrapTransform(definition.transform);
+    }
     Security.Rule.prototype[name] = function (arg) {
       var self = this;
       self._restrictions.push({
@@ -88,11 +92,47 @@ Security.Rule.prototype.apply = function () {
 
 };
 
-Security.Rule.prototype.deny = function (type, args) {
+Security.Rule.prototype.deny = function (type, collection, args) {
   var self = this;
   // Loop through all defined restrictions. Restrictions are additive for this chained
   // rule, so if any deny function returns true, this function should return true.
   return _.any(self._restrictions, function (restriction) {
+    var doc, transform = restriction.definition.transform;
+
+    // If transform is a function, apply that
+    if (typeof transform === 'function') {
+      if (type === 'insert') {
+        doc = EJSON.clone(args[1]);
+        // The wrapped transform requires an _id, but we
+        // don't have access to the generatedId from Meteor API,
+        // so we'll fudge one and then remove it.
+        doc._id = Random.id();
+      } else {
+        doc = args[1];
+      }
+      args[1] = transform(doc);
+      if (type === 'insert') {
+        delete args[1]._id;
+      }
+    }
+
+    // If not transform: null, apply the collection transform
+    else if (transform !== null && typeof collection._transform === 'function') {
+      if (type === 'insert') {
+        doc = EJSON.clone(args[1]);
+        // The wrapped transform requires an _id, but we
+        // don't have access to the generatedId from Meteor API,
+        // so we'll fudge one and then remove it.
+        doc._id = Random.id();
+      } else {
+        doc = args[1];
+      }
+      args[1] = collection._transform(doc);
+      if (type === 'insert') {
+        delete args[1]._id;
+      }
+    }
+
     return restriction.definition.deny.apply(this, [type, restriction.arg].concat(args));
   });
 };

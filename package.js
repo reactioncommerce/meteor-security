@@ -7,7 +7,7 @@ Package.describe({
 
 Package.onUse(function(api) {
   api.versionsFrom('METEOR@1.0');
-  api.use(['mongo', 'underscore']);
+  api.use(['mongo', 'underscore', 'minimongo', 'random']);
   api.use('alanning:roles@1.2.13', ["client", "server"], {weak: true});
   api.addFiles(['security-util.js', 'security-deny.js', 'security-api.js', 'security-rules.js'], ['server']);
   api.export('Security');

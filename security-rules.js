@@ -8,6 +8,7 @@
 
 Security.defineMethod("never", {
   fetch: [],
+  transform: null,
   deny: function () {
     return true;
   }
@@ -19,6 +20,7 @@ Security.defineMethod("never", {
 
 Security.defineMethod("ifLoggedIn", {
   fetch: [],
+  transform: null,
   deny: function (type, arg, userId) {
     return !userId;
   }
@@ -30,6 +32,7 @@ Security.defineMethod("ifLoggedIn", {
 
 Security.defineMethod("ifHasUserId", {
   fetch: [],
+  transform: null,
   deny: function (type, arg, userId) {
     return userId !== arg;
   }
@@ -45,6 +48,7 @@ if (Package && Package["alanning:roles"]) {
 
   Security.defineMethod("ifHasRole", {
     fetch: [],
+    transform: null,
     deny: function (type, arg, userId) {
       return !Roles.userIsInRole(userId, arg);
     }
@@ -58,6 +62,7 @@ if (Package && Package["alanning:roles"]) {
 
 Security.defineMethod("onlyProps", {
   fetch: [],
+  transform: null,
   deny: function (type, arg, userId, doc, fieldNames) {
     if (!_.isArray(arg)) {
       arg = [arg];
@@ -73,6 +78,7 @@ Security.defineMethod("onlyProps", {
 
 Security.defineMethod("exceptProps", {
   fetch: [],
+  transform: null,
   deny: function (type, arg, userId, doc, fieldNames) {
     if (!_.isArray(arg)) {
       arg = [arg];

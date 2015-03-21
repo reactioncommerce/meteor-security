@@ -19,7 +19,7 @@ ensureSecureDeny = function ensureSecureDeny(collections, types) {
         // Loop through all defined rules for this collection. There is an OR relationship among
         // all rules for the collection, so if any do NOT return true, we allow.
         return _.every(rules, function (rule) {
-          return rule.deny(t, args);
+          return rule.deny(t, collection, args);
         });
       });
     });

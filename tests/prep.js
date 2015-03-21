@@ -18,13 +18,28 @@ collectionNames = [
   "allowOnlyUserIdToInsert",
   "allowOnlyUserIdToUpdate",
   "allowOnlyUserIdToRemove",
-  "advanced1"
+  "advanced1",
+  "ruleTransform"
 ];
 
 Collections = {};
 
 _.each(collectionNames, function (name) {
   Collections[name] = new Mongo.Collection(name);
+});
+
+Collections.transformed = new Mongo.Collection('transformed', {
+  transform: function (doc) {
+    doc.propAddedByCollectionTransform = true;
+    return doc;
+  }
+});
+
+Collections.skipTransform = new Mongo.Collection('skipTransform', {
+  transform: function (doc) {
+    doc.propAddedByCollectionTransform = true;
+    return doc;
+  }
 });
 
 if (Meteor.isServer) {
@@ -79,6 +94,41 @@ if (Meteor.isServer) {
   //advanced1
   Collections.advanced1.permit(['insert', 'update']).ifHasRole('admin').apply();
   Collections.advanced1.permit('update').ifLoggedIn().exceptProps(['author', 'date']).apply();
+
+  //transformed
+  Security.defineMethod("ifTransformedByCollection", {
+    fetch: [],
+    deny: function (type, arg, userId, doc) {
+      return doc.propAddedByCollectionTransform !== true;
+    }
+  });
+
+  Collections.transformed.permit(['insert', 'update', 'remove']).ifTransformedByCollection().apply();
+
+  //skipTransform
+  Security.defineMethod("ifNotTransformedByCollection", {
+    fetch: [],
+    transform: null,
+    deny: function (type, arg, userId, doc) {
+      return doc.propAddedByCollectionTransform === true;
+    }
+  });
+
+  Collections.skipTransform.permit(['insert', 'update', 'remove']).ifNotTransformedByCollection().apply();
+
+  //ruleTransform
+  Security.defineMethod("ifTransformedByRule", {
+    fetch: [],
+    transform: function (doc) {
+      doc.propAddedByRuleTransform = true;
+      return doc;
+    },
+    deny: function (type, arg, userId, doc) {
+      return doc.propAddedByRuleTransform !== true;
+    }
+  });
+
+  Collections.ruleTransform.permit(['insert', 'update', 'remove']).ifTransformedByRule().apply();
 
   Meteor.methods({
     addUserToRole: function (role) {

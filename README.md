@@ -82,13 +82,12 @@ Collection2.permit(['insert', 'update'])...ruleChainMethods()...apply();
 
 Call `Security.defineMethod` to define a method that may be used in the rule chain to restrict the currect rule. Pass a `definition` argument, which must contain a `deny` property set to a `deny` function for that rule. The `deny` function is the same as the standard Meteor one, except that it receives a `type` string as its first argument and the second argument is whatever the user passes to your method when calling it. The full function signature for inserts and removes is `(type, arg, userId, doc)` and for updates is `(type, arg, userId, doc, fields, modifier)`.
 
-You may additionally specify a `fetch` property in your definition, if you need certain properties fetched from the database.
-
 As an example, here is the definition for the built-in `ifHasUserId` method:
 
 ```js
 Security.defineMethod("ifHasUserId", {
   fetch: [],
+  transform: null,
   deny: function (type, arg, userId) {
     return userId !== arg;
   }
@@ -100,11 +99,20 @@ And here's an example of using the `doc` property to create a method that can be
 ```js
 Security.defineMethod("ifIsCurrentUser", {
   fetch: [],
+  transform: null,
   deny: function (type, arg, userId, doc) {
     return userId !== doc._id;
   }
 });
 ```
+
+#### Transformations
+
+If a rule is applied to a collection and that collection has a `transform` function, the `doc` received by your rule's deny function will be transformed. In most cases, you will want to prevent this by adding `transform: null` to your rule definition. Alternatively, you can set `transform` to a function in your rule definition, and that transformation will be run before calling the deny function.
+
+#### Fetch
+
+It's good practice to include `fetch: []` in your rule definition, listing any fields you need for your deny logic. However, the `fetch` option is not yet implemented. Currently all fields are fetched.
 
 ### Security.Rule
 
