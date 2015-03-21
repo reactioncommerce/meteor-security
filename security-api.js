@@ -13,7 +13,7 @@ Security = {
   permit: function permit(types) {
     return new Security.Rule(types);
   },
-  defineMethod: function Security_defineMethod(name, definition) {
+  defineMethod: function securityDefineMethod(name, definition) {
     // Check whether a rule with the given name already exists; can't overwrite
     if (Security.Rule.prototype[name]) {
       throw new Error('A security method with the name "' + name + '" has already been defined');

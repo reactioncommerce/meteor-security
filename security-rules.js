@@ -8,7 +8,7 @@
 
 Security.defineMethod("never", {
   fetch: [],
-  deny: function (type, arg) {
+  deny: function () {
     return true;
   }
 });

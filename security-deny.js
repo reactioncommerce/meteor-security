@@ -7,7 +7,7 @@ ensureSecureDeny = function ensureSecureDeny(collections, types) {
   _.each(types, function (t) {
     _.each(collections, function (collection) {
       var collectionName = collection._name;
-      ensureCreated("deny", [collection], [t], function () {
+      ensureCreated("deny", [collection], [t], null, function () {
         var args = _.toArray(arguments);
         var rules = rulesByCollection[collectionName] || [];
 
