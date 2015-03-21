@@ -144,6 +144,15 @@ Posts.permit('remove').ifLoggedIn().ifCreated().ifNotFriday().apply();
 // If neither of the above are true, the default behavior is to deny removal
 ```
 
+## Using with CollectionFS
+
+This package supports the special "download" allow/deny for the CollectionFS packages. You must use the underlying collection of your `FS.Collection` instances, which is referenced by the `files` object. For example:
+
+```js
+Images.files.permit(['insert', 'update', 'remove']).ifHasRole('admin').apply();
+Images.files.permit(['download']).ifLoggedIn().apply();
+```
+
 ## Contributing
 
 You are welcome to submit pull requests if you have ideas for fixing or improving the API. If you come up with generally useful security rules, you should publish your own package that depends on this one and document the rules it provides so that others can use them. You may then submit a pull request to add a link to your package documentation in this readme.

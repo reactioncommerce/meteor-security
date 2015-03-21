@@ -6,12 +6,14 @@ var created = {
   allow: {
     insert: {},
     update: {},
-    remove: {}
+    remove: {},
+    download: {} // for use with CollectionFS packages
   },
   deny: {
     insert: {},
     update: {},
-    remove: {}
+    remove: {},
+    download: {} // for use with CollectionFS packages
   }
 };
 
