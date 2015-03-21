@@ -50,7 +50,14 @@ if (Package && Package["alanning:roles"]) {
     fetch: [],
     transform: null,
     deny: function (type, arg, userId) {
-      return !Roles.userIsInRole(userId, arg);
+      if (!arg) {
+        throw new Error('ifHasRole security rule method requires an argument');
+      }
+      if (arg.role) {
+        return !Roles.userIsInRole(userId, arg.role, arg.group);
+      } else {
+        return !Roles.userIsInRole(userId, arg);
+      }
     }
   });
 
