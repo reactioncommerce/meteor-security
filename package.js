@@ -1,7 +1,7 @@
 Package.describe({
   name: "ongoworks:security",
   summary: "Logical security for client-originated MongoDB collection operations",
-  version: "1.0.1",
+  version: "1.1.0",
   git: "https://github.com/ongoworks/meteor-security.git"
 });
 
