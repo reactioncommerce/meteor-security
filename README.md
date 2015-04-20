@@ -80,7 +80,7 @@ Collection2.permit(['insert', 'update'])...ruleChainMethods()...apply();
 
 ### Security.defineMethod(name, definition)
 
-Call `Security.defineMethod` to define a method that may be used in the rule chain to restrict the currect rule. Pass a `definition` argument, which must contain a `deny` property set to a `deny` function for that rule. The `deny` function is the same as the standard Meteor one, except that it receives a `type` string as its first argument and the second argument is whatever the user passes to your method when calling it. The full function signature for inserts and removes is `(type, arg, userId, doc)` and for updates is `(type, arg, userId, doc, fields, modifier)`.
+Call `Security.defineMethod` to define a method that may be used in the rule chain to restrict the current rule. Pass a `definition` argument, which must contain a `deny` property set to a `deny` function for that rule. The `deny` function is the same as the standard Meteor one, except that it receives a `type` string as its first argument and the second argument is whatever the user passes to your method when calling it. The full function signature for inserts and removes is `(type, arg, userId, doc)` and for updates is `(type, arg, userId, doc, fields, modifier)`.
 
 As an example, here is the definition for the built-in `ifHasUserId` method:
 
