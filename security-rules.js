@@ -42,6 +42,9 @@ Security.defineMethod("ifHasUserId", {
  * Specific Roles
  */
 
+/*
+ * alanning:roles support
+ */
 if (Package && Package["alanning:roles"]) {
 
   var Roles = Package["alanning:roles"].Roles;
@@ -56,8 +59,29 @@ if (Package && Package["alanning:roles"]) {
       if (arg.role) {
         return !Roles.userIsInRole(userId, arg.role, arg.group);
       } else {
-        return !Roles.userIsInRole(userId, arg);
+        return !Roles.userHasRole(userId, arg);
       }
+    }
+  });
+
+}
+
+/*
+ * nicolaslopezj:roles support
+ * Note: doesn't support groups
+ */
+if (Package && Package["nicolaslopezj:roles"]) {
+
+  var Roles = Package["nicolaslopezj:roles"].Roles;
+
+  Security.defineMethod("ifHasRole", {
+    fetch: [],
+    transform: null,
+    deny: function (type, arg, userId) {
+      if (!arg) {
+        throw new Error('ifHasRole security rule method requires an argument');
+      }
+      return !Roles.userHasRole(userId, arg);
     }
   });
 
