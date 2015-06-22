@@ -59,7 +59,7 @@ if (Package && Package["alanning:roles"]) {
       if (arg.role) {
         return !Roles.userIsInRole(userId, arg.role, arg.group);
       } else {
-        return !Roles.userHasRole(userId, arg);
+        return !Roles.userIsInRole(userId, arg);
       }
     }
   });
