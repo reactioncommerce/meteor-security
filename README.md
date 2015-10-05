@@ -144,6 +144,48 @@ Posts.permit('remove').ifLoggedIn().ifCreated().ifNotFriday().apply();
 // If neither of the above are true, the default behavior is to deny removal
 ```
 
+## Checking Your Rules in a Method
+
+Like allow/deny rules, the rules you define apply only to inserts, updates, and removes that originate in client code. However, if you want to check the same rules for operations in a server method, you can add the [dispatch:run-as-user](https://github.com/DispatchMe/Meteor-run-as-user) package and wrap your database calls in `Meteor.runRestricted`, like this:
+
+```js
+Meteor.method({
+  myMethod: function(post) {
+    return Meteor.runRestricted(function() {
+      return Post.insert(post);
+    });
+  }
+});
+```
+
+We are also working on adding better built-in support for checking your rules in methods.
+
+## Examples
+
+### Example 1
+
+Here's how you might make your own rule that ensures the `ownerId` property on a document is set to the current user.
+
+```js
+Security.defineMethod('ownsDocument', {
+  fetch: ['ownerId'],
+  deny: function (type, arg, userId, doc) {
+    return userId !== doc.ownerId;
+  }
+});
+```
+
+And then you can use it like this:
+
+```js
+Posts.permit(['insert', 'update']).ownsDocument().apply();
+```
+
+Which means:
+
+- "A user can insert a post from a client if they set themselves as the author"
+- "A user can update a post from a client if they are currently set as the author."
+
 ## Using with CollectionFS
 
 This package supports the special "download" allow/deny for the CollectionFS packages. You must use the underlying collection of your `FS.Collection` instances, which is referenced by the `files` object. For example:
