@@ -20,11 +20,18 @@ Package.onUse(function (api) {
   });
 
   api.addFiles([
-    'security-util.js',
-    'security-deny.js',
-    'security-api.js',
-    'security-rules.js'
+    'lib/server/security-util.js',
+    'lib/server/security-deny.js',
+    'lib/server/security-api.js'
   ], 'server');
+
+  api.addFiles([
+    'lib/client/security-api.js'
+  ], 'client');
+
+  api.addFiles([
+    'lib/security-rules.js'
+  ]);
 
   api.export('Security');
 });
@@ -42,5 +49,6 @@ Package.onTest(function (api) {
   ]);
 
   api.addFiles('tests/prep.js');
-  api.addFiles('tests/tests.js', 'client');
+  api.addFiles('tests/server.js', 'server');
+  //api.addFiles('tests/client.js', 'client');
 });

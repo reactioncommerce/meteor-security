@@ -146,19 +146,83 @@ Posts.permit('remove').ifLoggedIn().ifCreated().ifNotFriday().apply();
 
 ## Checking Your Rules in a Method
 
-Like allow/deny rules, the rules you define apply only to inserts, updates, and removes that originate in client code. However, if you want to check the same rules for operations in a server method, you can add the [dispatch:run-as-user](https://github.com/DispatchMe/Meteor-run-as-user) package and wrap your database calls in `Meteor.runRestricted`, like this:
+Like allow/deny rules, the rules you define apply only to inserts, updates, and removes that originate in client code. However, if you want to check the same rules for operations in a server method, there are two ways you can do it.
+
+### Using Security.can
+
+`Security.can` allows you to check your rules in any server code.
+
+Insert syntax:
 
 ```js
-Meteor.method({
-  myMethod: function(post) {
+if (Security.can(userId).insert(doc).for(MyCollection).check()) {}
+// OR
+Security.can(userId).insert(doc).for(MyCollection).throw();
+```
+
+Update syntax:
+
+```js
+if (Security.can(userId).update(id, modifier).for(MyCollection).check()) {}
+// OR
+Security.can(userId).update(id, modifier).for(MyCollection).throw();
+```
+
+Remove syntax:
+
+```js
+if (Security.can(userId).remove(id).for(MyCollection).check()) {}
+// OR
+Security.can(userId).remove(id).for(MyCollection).throw();
+```
+
+For example, say you have a method that will insert a post and then increment a counter in the user's document. You do not want to do either unless both are allowed by your security rules.
+
+```js
+Meteor.methods({
+  insertPost: function (post) {
+    check(post, Schemas.Post);
+    
+    Security.can(this.userId).insert(post).for(Post).throw();
+    
+    var userModifier = {
+      $inc: {
+        postsCount: 1
+      }
+    };
+    Security.can(this.userId).update(this.userId, userModifier).for(Meteor.users).throw();
+  
+    var postId = Post.insert(post);
+    
+    Meteor.users.update(this.userId, userModifier);
+    
+    return postId;
+  }
+});
+```
+
+### Using Meteor.runRestricted
+
+You can add the [dispatch:run-as-user](https://github.com/DispatchMe/Meteor-run-as-user) package and wrap your database calls in `Meteor.runRestricted`, like this:
+
+```js
+Meteor.methods({
+  insertPost: function(post) {
+    check(post, Schemas.Post);
+  
+    var userId = this.userId;
     return Meteor.runRestricted(function() {
-      return Post.insert(post);
+      var postId = Post.insert(post);
+    
+      Meteor.users.update(userId, userModifier);
+
+      return postId;
     });
   }
 });
 ```
 
-We are also working on adding better built-in support for checking your rules in methods.
+This will run allow/deny checks for them, including the rules defined by this package.
 
 ## Examples
 
@@ -188,12 +252,16 @@ Which means:
 
 ## Using with CollectionFS
 
-This package supports the special "download" allow/deny for the CollectionFS packages. You must use the underlying collection of your `FS.Collection` instances, which is referenced by the `files` object. For example:
+This package supports the special "download" allow/deny for the CollectionFS packages, but you must use the `Security.permit` syntax rather than `myFSCollection.permit`. For example:
 
 ```js
-Images.files.permit(['insert', 'update', 'remove']).ifHasRole('admin').apply();
-Images.files.permit(['download']).ifLoggedIn().apply();
+Security.permit(['insert', 'update', 'remove']).collections([Photos]).ifHasRole('admin').apply();
+Security.permit(['download']).collections([Photos]).ifLoggedIn().apply();
 ```
+
+## Client/Common Code
+
+You can call this package API in common code if you need to. When running on the client, the functions are simple stubs that do not actually do anything.
 
 ## Contributing
 
