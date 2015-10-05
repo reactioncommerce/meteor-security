@@ -801,10 +801,13 @@ Tinytest.addAsync('Security - ruleTransform - remove', function(test, next) {
 function createAndLogIn(role, callback) {
   var email = Random.id() + "@example.com";
   Meteor.logout(function () {
-    Accounts.createUser({email: email, password: "newPassword"}, function () {
-      Meteor.loginWithPassword({email: email}, "newPassword", function () {
+    Accounts.createUser({email: email, password: "newPassword"}, function (error) {
+      if (error) throw error;
+      Meteor.loginWithPassword({email: email}, "newPassword", function (error) {
+        if (error) throw error;
         if (role) {
-          Meteor.call("addUserToRole", role, function () {
+          Meteor.call("addUserToRole", role, function (error) {
+            if (error) throw error;
             callback();
           });
         } else {

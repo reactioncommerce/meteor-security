@@ -44,6 +44,9 @@ Collections.skipTransform = new Mongo.Collection('skipTransform', {
 
 if (Meteor.isServer) {
 
+  // See https://github.com/meteor/meteor/tree/master/packages/ddp-rate-limiter
+  Accounts.removeDefaultRateLimit();
+
   //allowAnyone
 
   Collections.allowAnyone.permit(['insert', 'update', 'remove']).apply();

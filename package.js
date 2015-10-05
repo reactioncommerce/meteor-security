@@ -5,23 +5,42 @@ Package.describe({
   git: "https://github.com/ongoworks/meteor-security.git"
 });
 
-Package.onUse(function(api) {
+Package.onUse(function (api) {
   api.versionsFrom('METEOR@1.0');
-  api.use(['mongo', 'underscore', 'minimongo', 'random']);
-  api.use('alanning:roles@1.2.13', ["client", "server"], {weak: true});
-  api.addFiles(['security-util.js', 'security-deny.js', 'security-api.js', 'security-rules.js'], ['server']);
+
+  api.use([
+    'mongo',
+    'underscore',
+    'minimongo',
+    'random',
+    'ejson'
+  ]);
+  api.use('alanning:roles@1.2.14', ['client', 'server'], {
+    weak: true
+  });
+
+  api.addFiles([
+    'security-util.js',
+    'security-deny.js',
+    'security-api.js',
+    'security-rules.js'
+  ], 'server');
+
   api.export('Security');
 });
 
-Package.onTest(function(api) {
+Package.onTest(function (api) {
   api.versionsFrom('METEOR@1.0');
-  api.use('mongo');
-  api.use('underscore');
-  api.use('tinytest');
-  api.use('random');
-  api.use('accounts-password');
-  api.use('alanning:roles');
-  api.use('ongoworks:security');
+  api.use([
+    'ongoworks:security',
+    'mongo',
+    'underscore',
+    'tinytest',
+    'random',
+    'accounts-password',
+    'alanning:roles@1.2.14'
+  ]);
+
   api.addFiles('tests/prep.js');
   api.addFiles('tests/tests.js', 'client');
 });
