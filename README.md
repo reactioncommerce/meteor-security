@@ -232,9 +232,12 @@ Here's how you might make your own rule that ensures the `ownerId` property on a
 
 ```js
 Security.defineMethod('ownsDocument', {
-  fetch: ['ownerId'],
-  deny: function (type, arg, userId, doc) {
-    return userId !== doc.ownerId;
+  fetch: [],
+  deny: function (type, field, userId, doc) {
+    if(!field){
+      field = 'userId';
+    }
+    return userId !== doc[field];
   }
 });
 ```
@@ -242,7 +245,7 @@ Security.defineMethod('ownsDocument', {
 And then you can use it like this:
 
 ```js
-Posts.permit(['insert', 'update']).ownsDocument().apply();
+Posts.permit(['insert', 'update']).ownsDocument('ownerId').apply();
 ```
 
 Which means:
