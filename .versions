@@ -27,7 +27,7 @@ html-tools@1.0.7
 htmljs@1.0.7
 id-map@1.0.5
 jquery@1.11.6
-local-test:ongoworks:security@2.0.0
+local-test:ongoworks:security@2.0.1
 localstorage@1.0.7
 logging@1.0.10
 meteor@1.1.12
@@ -39,7 +39,7 @@ mongo-id@1.0.2
 npm-bcrypt@0.7.8_2
 npm-mongo@1.4.41
 observe-sequence@1.0.9
-ongoworks:security@2.0.0
+ongoworks:security@2.0.1
 ordered-dict@1.0.5
 promise@0.6.5
 random@1.0.7
