@@ -18,8 +18,10 @@ collectionNames = [
   "allowOnlyUserIdToInsert",
   "allowOnlyUserIdToUpdate",
   "allowOnlyUserIdToRemove",
+  "allowOnlyUserIdToRead",
   "advanced1",
-  "ruleTransform"
+  "ruleTransform",
+  "testFetch"
 ];
 
 Collections = {};
@@ -75,71 +77,76 @@ if (Meteor.isServer) {
     testUserId = Accounts.createUser({username: 'jimmy', password: 'jimmy'});
   }
 
-  Collections.allowOnlyUserId.permit(['insert', 'update', 'remove']).ifHasUserId(testUserId).apply();
+  Collections.allowOnlyUserId.permit(['insert', 'update', 'remove']).ifHasUserId(testUserId).allowInClientCode();
 
-  Collections.allowOnlyUserIdToInsert.permit(['insert']).ifHasUserId(testUserId).apply();
+  Collections.allowOnlyUserIdToInsert.permit(['insert']).ifHasUserId(testUserId).allowInClientCode();
 
-  Collections.allowOnlyUserIdToUpdate.permit(['update']).ifHasUserId(testUserId).apply();
+  Collections.allowOnlyUserIdToUpdate.permit(['update']).ifHasUserId(testUserId).allowInClientCode();
 
-  Collections.allowOnlyUserIdToRemove.permit(['remove']).ifHasUserId(testUserId).apply();
+  Collections.allowOnlyUserIdToRemove.permit(['remove']).ifHasUserId(testUserId).allowInClientCode();
 }
+
+// allowOnlyUserIdToRead
+
+Security.permit('read').collections(Collections.allowOnlyUserIdToRead).ifHasUserId(testUserId).allowInClientCode();
+
 
 // We do the rest of this in common code to ensure that the client stubs are properly
 // preventing errors when these are called in client code.
 
 //allowAnyone
-Collections.allowAnyone.permit(['insert', 'update', 'remove']).apply();
+Collections.allowAnyone.permit(['insert', 'update', 'remove']).allowInClientCode();
 
-Collections.allowAnyoneToInsert.permit(['insert']).apply();
+Collections.allowAnyoneToInsert.permit(['insert']).allowInClientCode();
 
-Collections.allowAnyoneToUpdate.permit(['update']).apply();
+Collections.allowAnyoneToUpdate.permit(['update']).allowInClientCode();
 
-Collections.allowAnyoneToRemove.permit(['remove']).apply();
+Collections.allowAnyoneToRemove.permit(['remove']).allowInClientCode();
 
 //allowNoOne
 
-Collections.allowNoOne.permit(['insert', 'update', 'remove']).never().apply();
+Collections.allowNoOne.permit(['insert', 'update', 'remove']).never().allowInClientCode();
 
-Collections.allowNoOneToInsert.permit(['insert']).never().apply();
+Collections.allowNoOneToInsert.permit(['insert']).never().allowInClientCode();
 
-Collections.allowNoOneToUpdate.permit(['update']).never().apply();
+Collections.allowNoOneToUpdate.permit(['update']).never().allowInClientCode();
 
-Collections.allowNoOneToRemove.permit(['remove']).never().apply();
+Collections.allowNoOneToRemove.permit(['remove']).never().allowInClientCode();
 
 //allowOnlyLoggedIn
 
-Collections.allowOnlyLoggedIn.permit(['insert', 'update', 'remove']).ifLoggedIn().apply();
+Collections.allowOnlyLoggedIn.permit(['insert', 'update', 'remove']).ifLoggedIn().allowInClientCode();
 
-Collections.allowOnlyLoggedInToInsert.permit(['insert']).ifLoggedIn().apply();
+Collections.allowOnlyLoggedInToInsert.permit(['insert']).ifLoggedIn().allowInClientCode();
 
-Collections.allowOnlyLoggedInToUpdate.permit(['update']).ifLoggedIn().apply();
+Collections.allowOnlyLoggedInToUpdate.permit(['update']).ifLoggedIn().allowInClientCode();
 
-Collections.allowOnlyLoggedInToRemove.permit(['remove']).ifLoggedIn().apply();
+Collections.allowOnlyLoggedInToRemove.permit(['remove']).ifLoggedIn().allowInClientCode();
 
 //advanced1
-Collections.advanced1.permit(['insert', 'update']).ifHasRole('admin').apply();
-Collections.advanced1.permit('update').ifLoggedIn().exceptProps(['author', 'date']).apply();
+Collections.advanced1.permit(['insert', 'update']).ifHasRole('admin').allowInClientCode();
+Collections.advanced1.permit('update').ifLoggedIn().exceptProps(['author', 'date']).allowInClientCode();
 
 //transformed
 Security.defineMethod("ifTransformedByCollection", {
   fetch: [],
-  deny: function (type, arg, userId, doc) {
-    return doc.propAddedByCollectionTransform !== true;
+  allow: function (type, arg, userId, doc) {
+    return doc.propAddedByCollectionTransform === true;
   }
 });
 
-Collections.transformed.permit(['insert', 'update', 'remove']).ifTransformedByCollection().apply();
+Collections.transformed.permit(['insert', 'update', 'remove']).ifTransformedByCollection().allowInClientCode();
 
 //skipTransform
 Security.defineMethod("ifNotTransformedByCollection", {
   fetch: [],
   transform: null,
-  deny: function (type, arg, userId, doc) {
-    return doc.propAddedByCollectionTransform === true;
+  allow: function (type, arg, userId, doc) {
+    return doc.propAddedByCollectionTransform !== true;
   }
 });
 
-Collections.skipTransform.permit(['insert', 'update', 'remove']).ifNotTransformedByCollection().apply();
+Collections.skipTransform.permit(['insert', 'update', 'remove']).ifNotTransformedByCollection().allowInClientCode();
 
 //ruleTransform
 Security.defineMethod("ifTransformedByRule", {
@@ -148,9 +155,28 @@ Security.defineMethod("ifTransformedByRule", {
     doc.propAddedByRuleTransform = true;
     return doc;
   },
-  deny: function (type, arg, userId, doc) {
-    return doc.propAddedByRuleTransform !== true;
+  allow: function (type, arg, userId, doc) {
+    return doc.propAddedByRuleTransform === true;
   }
 });
 
-Collections.ruleTransform.permit(['insert', 'update', 'remove']).ifTransformedByRule().apply();
+Collections.ruleTransform.permit(['insert', 'update', 'remove']).ifTransformedByRule().allowInClientCode();
+
+//testFetch
+Security.defineMethod("ifFetchFoo", {
+  fetch: ['foo'],
+  allow: function (type, arg, userId, doc) {
+    return doc.hasOwnProperty('foo') && doc.hasOwnProperty('bar') && !doc.hasOwnProperty('noFetch');
+  }
+});
+
+Security.defineMethod("ifFetchArg", {
+  fetch: function (arg) {
+    return arg;
+  },
+  allow: function (type, arg, userId, doc) {
+    return doc.hasOwnProperty('foo') && doc.hasOwnProperty('bar') && !doc.hasOwnProperty('noFetch');
+  }
+});
+
+Collections.testFetch.permit(['update', 'remove', 'read']).ifFetchFoo().ifFetchArg(['bar']);

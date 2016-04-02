@@ -360,6 +360,20 @@ Tinytest.add('Security - allowOnlyUserIdToRemove - remove', function(test) {
 });
 
 /*
+ * allowOnlyUserIdToRead
+ */
+
+Tinytest.add('Security - allowOnlyUserIdToRead', function(test) {
+  var permissions = Security.can(null).read({}).for(Collections.allowOnlyUserIdToRead);
+  doTest(test, permissions, false);
+  permissions = Security.can('userId').read({}).for(Collections.allowOnlyUserIdToRead);
+  doTest(test, permissions, false);
+  var userId = Meteor.users.findOne({username: 'jimmy'})._id;
+  permissions = Security.can(userId).read({}).for(Collections.allowOnlyUserIdToRead);
+  doTest(test, permissions, true);
+});
+
+/*
  * advanced1
  */
 
@@ -396,5 +410,25 @@ Tinytest.add('Security - advanced1 - update logged in as admin', function(test) 
   var userId = Accounts.createUser({email: Random.id() + "@example.com", password: "newPassword"});
   Roles.addUsersToRoles(userId, 'admin');
   var permissions = Security.can(userId).update('test', {$set: {foo: "bar"}}).for(Collections.advanced1);
+  doTest(test, permissions, true);
+});
+
+Tinytest.add('Security - issue #34', function (test) {
+  // Make sure this does not throw
+  Security.permit(['insert', 'remove', 'update']).collections([Meteor.roles]).ifHasRole('admin');
+});
+
+Tinytest.add('Security - testFetch', function (test) {
+  var id = Collections.testFetch.insert({
+    foo: 'foo',
+    bar: 'bar',
+    noFetch: 'noFetch',
+  });
+
+  var permissions = Security.can(null).update(id, {$unset: {foo: ''}}).for(Collections.testFetch);
+  doTest(test, permissions, true);
+  permissions = Security.can(null).read(id).for(Collections.testFetch);
+  doTest(test, permissions, true);
+  permissions = Security.can(null).remove(id).for(Collections.testFetch);
   doTest(test, permissions, true);
 });
