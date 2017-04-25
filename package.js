@@ -1,12 +1,12 @@
 Package.describe({
   name: "ongoworks:security",
   summary: "Logical security for client-originated MongoDB collection operations",
-  version: "2.0.1",
+  version: "2.1.0",
   git: "https://github.com/ongoworks/meteor-security.git"
 });
 
 Package.onUse(function (api) {
-  api.versionsFrom(['METEOR@1.0', 'METEOR@1.1', 'METEOR@1.2', 'METEOR@1.3']);
+  api.versionsFrom(['METEOR@1.0', 'METEOR@1.1', 'METEOR@1.2', 'METEOR@1.3', 'METEOR@1.4']);
 
   api.use([
     'mongo',
@@ -16,7 +16,7 @@ Package.onUse(function (api) {
     'ejson',
     'ecmascript',
   ]);
-  api.use('alanning:roles@1.2.14', ['client', 'server'], {
+  api.use('alanning:roles@1.2.16', ['client', 'server'], {
     weak: true
   });
 
@@ -51,7 +51,7 @@ Package.onTest(function (api) {
     'tinytest',
     'random',
     'accounts-password',
-    'alanning:roles@1.2.14'
+    'alanning:roles@1.2.16'
   ]);
 
   api.addFiles('tests/prep.js');
